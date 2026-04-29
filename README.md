@@ -1,6 +1,12 @@
 # uraimo/run-on-arch-action
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/uraimo/run-on-arch-action](https://github.com/uraimo/run-on-arch-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v3.0.1 | [`v3.0.1`](https://github.com/chainguard-actions/run-on-arch-action/tree/v3.0.1) | — |
 
 ## Privacy
 
