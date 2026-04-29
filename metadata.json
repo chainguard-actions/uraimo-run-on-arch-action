@@ -1,5 +1,6 @@
 {
   "owner": "uraimo",
   "name": "run-on-arch-action",
-  "visibility": ""
+  "visibility": "internal",
+  "description": "A Github Action that executes jobs/commands on non-x86 cpu architectures (ARMv6, ARMv7, aarch64, s390x, ppc64le, riscv64) via QEMU"
 }

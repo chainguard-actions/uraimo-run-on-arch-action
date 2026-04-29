@@ -1,5 +1,7 @@
 # uraimo/run-on-arch-action
 
+A Github Action that executes jobs/commands on non-x86 cpu architectures (ARMv6, ARMv7, aarch64, s390x, ppc64le, riscv64) via QEMU
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/uraimo/run-on-arch-action](https://github.com/uraimo/run-on-arch-action).
 
 ## Versions
