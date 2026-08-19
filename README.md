@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v3.0.1 | [`v3.0.1`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3.0.1) | — |
+| v3.2.0 | [`v3.2.0`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3.2.0) | [`460cb8e`](https://github.com/uraimo/run-on-arch-action/commit/460cb8e6d9f726a588fc9b5e681c8a6cab09ae41) |
 
 ## Privacy
 
