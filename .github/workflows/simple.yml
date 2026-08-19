@@ -1,0 +1,78 @@
+name: Basic Test
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  testactions_job:
+    runs-on: ubuntu-latest
+    name: Test
+
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            distro: bullseye  
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+    - name: Build and run container
+      id: build
+      uses: ./
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ${{ matrix.distro }}
+        env: |
+          env_arch: ${{ matrix.arch }}
+          env_distro: ${{ matrix.distro }}
+
+        # Test multiple argument formats
+        dockerRunArgs: |
+          -v "${PWD}/volume_1:/volume_1"
+          --volume=${PWD}/volume_2:/volume_2
+          "-v${PWD}/volume_3:/volume_3"
+          -v "${PWD}/volume_4:/volume_4" -v "${PWD}/volume_5:/volume_5"
+
+        # Sourced on host, after container build, before container run
+        setup: |
+          distro_info=$(cat /etc/*-release | tr '[:upper:]' '[:lower:]' | tr '"' ' ' | tr '\n' ' ')
+
+          printf 'host_arch=%s\n' "$(uname -m)" >> "$GITHUB_OUTPUT"
+          printf 'host_distro_info=%s\n' "$distro_info" >> "$GITHUB_OUTPUT"
+          printf 'host_env_arch=%s\n' "$env_arch" >> "$GITHUB_OUTPUT"
+          printf 'host_env_distro=%s\n' "$env_distro" >> "$GITHUB_OUTPUT"
+          printf 'host_shell_options=%s\n' "$-" >> "$GITHUB_OUTPUT"
+          
+        install: |
+              apt-get update -q -y
+              apt-get install -q -y git
+
+        # Run on container
+        run: |
+          distro_info=$(cat /etc/*-release | tr '[:upper:]' '[:lower:]' | sed 's/"//g' | tr '\n' ';')
+
+          printf 'arch=%s\n' "$(uname -m)" >> "$GITHUB_OUTPUT"
+          printf 'distro_info=%s\n' "$distro_info" >> "$GITHUB_OUTPUT"
+          printf 'shebang=%s\n' "$(head -n 1 "$0")" >> "$GITHUB_OUTPUT"
+          printf 'env_arch=%s\n' "$env_arch" >> "$GITHUB_OUTPUT"
+          printf 'env_distro=%s\n' "$env_distro" >> "$GITHUB_OUTPUT"
+          printf 'shell_options=%s\n' "$-" >> "$GITHUB_OUTPUT"
+
+    - name: Assert container receives environment variables
+      env:
+        ENV_ARCH: ${{ steps.build.outputs.env_arch }}
+        ENV_DISTRO: ${{ steps.build.outputs.env_distro }}
+        MATRIX_ARCH: ${{ matrix.arch }}
+        MATRIX_DISTRO: ${{ matrix.distro }}
+      run: |
+        arch="$ENV_ARCH"
+        distro="$ENV_DISTRO"
+
+        echo "Assert env_arch: '$arch' == '$MATRIX_ARCH'"
+        test "$arch" == "$MATRIX_ARCH"
+
+        echo "Assert env_distro: '$distro' == '$MATRIX_DISTRO'"
+        test "$distro" == "$MATRIX_DISTRO"

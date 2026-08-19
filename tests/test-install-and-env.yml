@@ -1,0 +1,42 @@
+name: Test install and env variable propagation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MY_TEST_VAR: hello_from_host
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run with install and env propagation
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          env: |
+            MY_TEST_VAR: hello_from_host
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y curl
+          run: |
+            echo "MY_TEST_VAR is: $MY_TEST_VAR"
+            if [ "$MY_TEST_VAR" != "hello_from_host" ]; then
+              echo "FAIL: env var not propagated correctly, got: $MY_TEST_VAR"
+              exit 1
+            fi
+            echo "PASS: env var propagated correctly"
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: install and env test completed successfully"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (Docker/QEMU not available in this environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

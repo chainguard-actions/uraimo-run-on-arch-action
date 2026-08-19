@@ -1,0 +1,29 @@
+name: Test for issue 160
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # master
+        name: Test
+        id: runcmd
+        with:
+          arch: s390x
+          distro: ubuntu_latest
+          install: |
+            apt-get update -q -y
+            apt-get install -y cmake make g++ git
+          run: |
+            git clone https://github.com/RoaringBitmap/CRoaring.git
+            cd CRoaring
+            cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_ROARING_TESTS=ON -B build
+            cmake --build build -j=2
+            ctest --output-on-failure --test-dir build
