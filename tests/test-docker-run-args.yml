@@ -1,0 +1,37 @@
+name: Test dockerRunArgs input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create a host file to mount via dockerRunArgs
+        run: |
+          mkdir -p /tmp/run-on-arch-test
+          echo "hello-from-host" > /tmp/run-on-arch-test/hostfile.txt
+      - id: action
+        uses: .
+        with:
+          arch: aarch64
+          distro: alpine_latest
+          dockerRunArgs: --volume /tmp/run-on-arch-test:/mnt/hostdata:ro
+          run: |
+            echo "Checking mounted file..."
+            cat /mnt/hostdata/hostfile.txt
+            CONTENT=$(cat /mnt/hostdata/hostfile.txt)
+            if [ "$CONTENT" != "hello-from-host" ]; then
+              echo "FAIL: unexpected content: $CONTENT"
+              exit 1
+            fi
+            echo "dockerRunArgs-result=pass" >> "$GITHUB_OUTPUT"
+      - name: Assert dockerRunArgs volume mount worked
+        env:
+          ACTUAL: ${{ steps.action.outputs['dockerRunArgs-result'] }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "pass" ]; then
+            echo "FAIL: expected 'pass' but got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS"
