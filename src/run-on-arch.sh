@@ -92,7 +92,7 @@ run_container () {
     DOCKER_RUN_ARGS[$i]=$(eval echo "${DOCKER_RUN_ARGS[$i]}")
   done
 
-  export RUN_ON_ARCH_COMMANDS; RUN_ON_ARCH_COMMANDS=$(cat "${ACTION_DIR}/src/run-on-arch-commands.sh")
+  chmod +x "${ACTION_DIR}/src/run-on-arch-commands.sh"
 
   # The location of the event.json file
   EVENT_DIR=$(dirname "$GITHUB_EVENT_PATH")
@@ -130,10 +130,10 @@ run_container () {
     -v "${EVENT_DIR}:${EVENT_DIR}" \
     -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
     -v "${ACTION_DIR}:${ACTION_DIR}" \
-    -e RUN_ON_ARCH_COMMANDS \
+    --tty \
     ${DOCKER_RUN_ARGS[@]} \
     "${CONTAINER_NAME}:latest" \
-    /bin/sh -c "$RUN_ON_ARCH_COMMANDS"
+    "${ACTION_DIR}/src/run-on-arch-commands.sh"
 }
 
 # Installing deps produces a lot of log noise, so we do so quietly

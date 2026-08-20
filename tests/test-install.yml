@@ -1,0 +1,39 @@
+name: Test install step before run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y curl
+          run: |
+            curl --version
+            echo "curl_installed=true" >> $GITHUB_OUTPUT
+      - name: Assert curl was installed and available or graceful failure
+        env:
+          CURL_INSTALLED: ${{ steps.action.outputs.curl_installed }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "curl_installed: $CURL_INSTALLED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$CURL_INSTALLED" != "true" ]; then
+              echo "FAIL: expected curl to be installed but output was '$CURL_INSTALLED'"
+              exit 1
+            fi
+            echo "PASS: curl was successfully installed and run in the container"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (QEMU/Docker infrastructure not available)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

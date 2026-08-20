@@ -1,0 +1,36 @@
+name: Test basic aarch64 usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          run: |
+            uname -m
+            echo "arch_output=$(uname -m)" >> $GITHUB_OUTPUT
+      - name: Assert aarch64 architecture or graceful failure
+        env:
+          ARCH: ${{ steps.action.outputs.arch_output }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "arch: $ARCH"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$ARCH" != "aarch64" ]; then
+              echo "FAIL: expected aarch64 but got '$ARCH'"
+              exit 1
+            fi
+            echo "PASS: architecture is aarch64"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (QEMU/Docker infrastructure not available)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

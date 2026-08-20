@@ -1,0 +1,24 @@
+name: Test dockerRunArgs input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          arch: aarch64
+          distro: alpine_latest
+          dockerRunArgs: '--env CUSTOM_VAR=hello_from_docker_run_args'
+          run: |
+            echo "CUSTOM_VAR=$CUSTOM_VAR"
+            if [ "$CUSTOM_VAR" != "hello_from_docker_run_args" ]; then
+              echo "FAIL: CUSTOM_VAR not set correctly via dockerRunArgs"
+              exit 1
+            fi
+            echo "PASS: dockerRunArgs env var is set correctly"
+      - name: Assert action succeeded
+        run: |
+          echo "PASS: action completed successfully with dockerRunArgs"
