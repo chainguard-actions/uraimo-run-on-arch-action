@@ -8,7 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v3 | [`v3`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3) | [`f9b26e3`](https://github.com/uraimo/run-on-arch-action/commit/f9b26e3a1a408d5fd530d20c17b9f3f4428ff8d9) |
+| v3 | [`v3`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3) | [`d94c139`](https://github.com/uraimo/run-on-arch-action/commit/d94c13912ea685de38fccc1109385b83fd79427d) |
 | v3.0.1 | [`v3.0.1`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3.0.1) | [`d94c139`](https://github.com/uraimo/run-on-arch-action/commit/d94c13912ea685de38fccc1109385b83fd79427d) |
 | v3.1.0 | [`v3.1.0`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3.1.0) | [`f9b26e3`](https://github.com/uraimo/run-on-arch-action/commit/f9b26e3a1a408d5fd530d20c17b9f3f4428ff8d9) |
 | v3.2.0 | [`v3.2.0`](https://github.com/chainguard-actions/uraimo-run-on-arch-action/tree/v3.2.0) | [`460cb8e`](https://github.com/uraimo/run-on-arch-action/commit/460cb8e6d9f726a588fc9b5e681c8a6cab09ae41) |
