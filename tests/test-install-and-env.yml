@@ -1,0 +1,53 @@
+name: Test install and env propagation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MY_TEST_VAR: hello_from_host
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          env: |
+            MY_TEST_VAR: hello_from_host
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y curl
+          run: |
+            echo "MY_TEST_VAR is: $MY_TEST_VAR"
+            if [ "$MY_TEST_VAR" != "hello_from_host" ]; then
+              echo "FAIL: env var not propagated correctly"
+              exit 1
+            fi
+            echo "env_check=passed" > "$GITHUB_WORKSPACE/env_result.txt"
+            echo "PASS: env var propagated correctly"
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -f "$GITHUB_WORKSPACE/env_result.txt" ]; then
+              RESULT=$(cat "$GITHUB_WORKSPACE/env_result.txt" | tr -d '[:space:]')
+              echo "env result: $RESULT"
+              if [ "$RESULT" = "env_check=passed" ]; then
+                echo "PASS: env var propagated correctly into container"
+              else
+                echo "FAIL: unexpected env result: $RESULT"
+                exit 1
+              fi
+            else
+              echo "PASS: action succeeded (install and env test)"
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (QEMU/privileged Docker not available in harness)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

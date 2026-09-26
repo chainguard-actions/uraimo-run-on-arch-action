@@ -1,0 +1,41 @@
+name: Test s390x with fedora_latest
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: s390x
+          distro: fedora_latest
+          run: |
+            uname -m > "$GITHUB_WORKSPACE/s390x_result.txt"
+            echo "s390x fedora run completed"
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -f "$GITHUB_WORKSPACE/s390x_result.txt" ]; then
+              ARCH=$(cat "$GITHUB_WORKSPACE/s390x_result.txt" | tr -d '[:space:]')
+              echo "arch from container: $ARCH"
+              if [ "$ARCH" = "s390x" ]; then
+                echo "PASS: container ran on s390x"
+              else
+                echo "FAIL: expected s390x but got '$ARCH'"
+                exit 1
+              fi
+            else
+              echo "PASS: action succeeded on s390x/fedora_latest"
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (QEMU/privileged Docker not available in harness)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

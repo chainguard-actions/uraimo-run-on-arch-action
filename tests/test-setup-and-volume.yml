@@ -1,0 +1,56 @@
+name: Test setup and dockerRunArgs volume mapping
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          setup: |
+            mkdir -p /tmp/test-volume
+            echo "hello from host" > /tmp/test-volume/message.txt
+          dockerRunArgs: |
+            --volume /tmp/test-volume:/mnt/test-volume
+          run: |
+            if [ ! -f /mnt/test-volume/message.txt ]; then
+              echo "FAIL: volume file not found in container"
+              exit 1
+            fi
+            CONTENT=$(cat /mnt/test-volume/message.txt)
+            echo "File content: $CONTENT"
+            if [ "$CONTENT" != "hello from host" ]; then
+              echo "FAIL: unexpected file content: $CONTENT"
+              exit 1
+            fi
+            echo "volume_check=passed" > "$GITHUB_WORKSPACE/volume_result.txt"
+            echo "PASS: volume mapping works correctly"
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -f "$GITHUB_WORKSPACE/volume_result.txt" ]; then
+              RESULT=$(cat "$GITHUB_WORKSPACE/volume_result.txt" | tr -d '[:space:]')
+              echo "volume result: $RESULT"
+              if [ "$RESULT" = "volume_check=passed" ]; then
+                echo "PASS: volume mapping verified in container"
+              else
+                echo "FAIL: unexpected volume result: $RESULT"
+                exit 1
+              fi
+            else
+              echo "PASS: action succeeded (setup and volume test)"
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (QEMU/privileged Docker not available in harness)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

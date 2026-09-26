@@ -1,0 +1,9 @@
+{
+  "status": "bundled",
+  "entries": [
+    {
+      "path": "src/run-on-arch.js",
+      "status": "bundled"
+    }
+  ]
+}
