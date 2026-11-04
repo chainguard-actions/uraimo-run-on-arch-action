@@ -6258,6 +6258,14 @@ async function main() {
   if ((arch === "none" || distro === "none") && !base_image) {
     throw new Error(`run-on-arch: If arch and distro are not specified, base_image is required.`);
   }
+  for (const [name, value] of [["arch", arch], ["distro", distro]]) {
+    if (/[\/\\\0\r\n]/.test(value)) {
+      throw new Error(`run-on-arch: invalid ${name} value.`);
+    }
+  }
+  if (/[\r\n\0]/.test(base_image)) {
+    throw new Error(`run-on-arch: base_image must be a single line.`);
+  }
   const dockerFile = path.join(
     __dirname,
     "..",

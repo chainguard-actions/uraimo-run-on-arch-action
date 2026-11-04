@@ -4,79 +4,155 @@
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
+**Policy SHA:** `374911c4be584df24e6da57af2d990570ef0f859`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
 **Harden Agent Version:** `2`
 
-Action **uraimo--run-on-arch-action/v3.1.0** was hardened automatically. 3 finding(s) were identified and resolved across 1 iteration(s).
+Action **uraimo--run-on-arch-action/v3.1.0** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
-### script-injection (severity: high)
+### prior-fix (severity: high)
 
-Multiple `run:` blocks directly interpolate GitHub Actions expressions (`${{ steps.build.outputs.* }}` and `${{ matrix.* }}`) inside shell commands. This violates rule (a): any `${{ ... }}` expression inside a `run:` block is a script-injection risk because the value is substituted by the YAML template engine before the shell ever sees it, allowing an attacker to inject shell metacharacters. Examples include: `arch="${{ steps.build.outputs.host_arch }}"`, `case "${{ matrix.distro }}" in`, `test "$arch" == "${{ matrix.arch }}"`.
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed src/run-on-arch.js without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/src/run-on-arch.js b/src/run-on-arch.js
+index c2e661e..7891afa 100644
+--- a/src/run-on-arch.js
++++ b/src/run-on-arch.js
+@@ -1,34 +1,6269 @@
+-/*jshint esversion: 9 */
++var __getOwnPropNames = Object.getOwnPropertyNames;
++var __commonJS = (cb, mod) => function __require() {
++  try {
++    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
++  } catch (e) {
++    throw mod = 0, e;
++  }
++};
+ 
+-const core = require('@actions/core');
+-const fs = require('fs');
+-const path = require('path');
+-const YAML = require('yaml');
+-const shlex = require('shlex');
+-const { exec } = require('@actions/exec');
++// node_modules/@actions/core/lib/command.js
++var require_command = __commonJS({
++  "node_modules/@actions/core/lib/command.js"(exports2) {
++    "use strict";
++    Object.defineProperty(exports2, "__esModule", { value: true });
++    var os = require("os");
++    function issueCommand(command, properties, message) {
++      const cmd = new Command(command, properties, message);
++      process.stdout.write(cmd.toString() + os.EOL);
++    }
++    exports2.issueCommand = issueCommand;
++    function issue(name, message = "") {
++      issueCommand(name, {}, message);
++    }
++    exports2.issue = issue;
++    var CMD_STRING = "::";
++    var Command = class {
++      constructor(command, properties, message) {
++        if (!command) {
++          command = "missing.command";
++        }
++        this.command = command;
++        this.properties = properties;
++        this.message = message;
++      }
++      toString() {
++        let cmdStr = CMD_STRING + this.command;
++        if (this.properties && Object.keys(this.properties).length > 0) {
++          cmdStr += " ";
++          for (const key in this.properties) {
++            if (this.properties.hasOwnProperty(key)) {
++              const val = this.properties[key];
++              if (val) {
++                cmdStr += `${key}=${escape(`${val || ""}`)},`;
++              }
++            }
++          }
++        }
++        cmdStr += CMD_STRING;
++        const message = `${this.message || ""}`;
++        cmdStr += escapeData(message);
++        return cmdStr;
++      }
++    };
++    function escapeData(s) {
++      return s.replace(/\r/g, "%0D").replace(/\n/g, "%0A");
++    }
++    function escape(s) {
++      return s.replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/]/g, "%5D").replace(/;/g, "%3B");
++    }
++  }
++});
+ 
+-function slug(str) {
+-  return str.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+-}
++// node_modules/@actions/core/lib/core.js
++var require_core = __commonJS({
++  "node_modules/@actions/core/lib/core.js"(exports2) {
++    "use strict";
++    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
++      function adopt(value) {
++        return value instanceof P ? value : new P(function(resolve) {
++          resolve(value);
++        });
++      }
++      return new (P || (P = Promise))(function(resolve, reject) {
++        function fulfilled(value) {
++          try {
++            step(generator.next(value));
++          } catch (e) {
++            reject(e);
++          }
++        }
++        function rejected(value) {
++          try {
++            step(generator["throw"](value));
++          } catch (e) {
++            reject(e);
++          }
++        }
++        function step(result) {
++          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
++        }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++      });
++    };
++    Object.defineProperty(exports2, "__esModule", { value: true });
++    var command_1 = require_command();
++    var os = require("os");
++    var path2 = require("path");
++    var ExitCode;
++    (function(ExitCode2) {
++      ExitCode2[ExitCode2["Success"] = 0] = "Success";
++      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
++    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
++    function exportVariable(name, val) {
++      process.env[name] = val;
++      command_1.issueCommand("set-env", { name }, val);
++ 
+... (truncated)
+```
 
 Locations:
 
-- `.github/workflows/test.yml:72`
-- `.github/workflows/test.yml:80`
-- `.github/workflows/test.yml:87`
-- `.github/workflows/test.yml:95`
-- `.github/workflows/test.yml:103`
-- `.github/workflows/test.yml:113`
-- `.github/workflows/test.yml:122`
-- `.github/workflows/test.yml:131`
-- `.github/workflows/test.yml:143`
-- `.github/workflows/test.yml:152`
-- `.github/workflows/test.yml:163`
-- `.github/workflows/test.yml:175`
-- `.github/workflows/test.yml:196`
-- `.github/workflows/test.yml:210`
-- `.github/workflows/simple.yml:57`
-- `.github/workflows/simple.yml:62`
-- `.github/workflows/simple.yml:65`
-- `.github/workflows/simple.yml:68`
-
-### unpinned-uses (severity: high)
-
-Multiple workflow files reference external actions using mutable tags or branch names instead of full 40-character commit SHAs. This exposes the workflow to supply-chain attacks if the referenced tag or branch is moved or overwritten. Failing references: `actions/checkout@v4` (tag), `fregante/setup-git-user@v2` (tag), `uraimo/run-on-arch-action@master` (branch).
-
-Locations:
-
-- `.github/workflows/test.yml:28`
-- `.github/workflows/simple.yml:16`
-- `.github/workflows/advanced-example.yml:22`
-- `.github/workflows/floating-tag.yml:14`
-- `.github/workflows/floating-tag.yml:15`
-- `.github/workflows/issue160.yml:13`
-- `.github/workflows/issue160.yml:14`
-
-### missing-permissions (severity: medium)
-
-Four workflow files have no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, workflows run with the default token permissions (which may be `write-all` depending on repository settings), granting unnecessary access. The affected files are: test.yml, simple.yml, advanced-example.yml, and floating-tag.yml. (issue160.yml correctly declares `permissions: contents: read`.)
-
-Locations:
-
-- `.github/workflows/test.yml:1`
-- `.github/workflows/simple.yml:1`
-- `.github/workflows/advanced-example.yml:1`
-- `.github/workflows/floating-tag.yml:1`
+- `src/run-on-arch.js`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** script-injection, unpinned-uses, missing-permissions
+**Fixes applied:** prior-fix
 
 **Notes:**
 
-Fixed all three findings across 5 workflow files:
-
-1. script-injection: Moved all ${{ steps.build.outputs.* }} and ${{ matrix.* }} expressions from run: blocks into step-level env: blocks in test.yml and simple.yml. Shell scripts now reference plain $ENV_VAR names. The install: action input that used ${{ matrix.distro }} was changed to use $env_distro (already available via the action's env: input).
-
-2. unpinned-uses: Pinned all action references to full 40-char SHAs: actions/checkout@v4 → @11d5960a326750d5838078e36cf38b85af677262, fregante/setup-git-user@v2 → @024bc0b8e177d7e77203b48dab6fb45666854b35, uraimo/run-on-arch-action@master → @460cb8e6d9f726a588fc9b5e681c8a6cab09ae41. Applied to test.yml, simple.yml, advanced-example.yml, floating-tag.yml, and issue160.yml.
-
-3. missing-permissions: Added permissions: contents: read to test.yml, simple.yml, and advanced-example.yml. Added permissions: contents: write to floating-tag.yml (required for git push/tag operations). issue160.yml already had correct permissions.
+The previous harden replaced src/run-on-arch.js with an esbuild bundle of its dependencies (@actions/core, @actions/exec, yaml, shlex). The diff was cut off after about 6,000 added lines, so I couldn't see any targeted changes it may have made inside main(). Those dependencies are still in node_modules, so bundling them isn't needed and isn't a security fix. I kept the readable source and added validation instead: (1) arch and distro are now rejected if they contain '/', '\', NUL or newline characters. They are used to build the path that the custom Dockerfile is written to when base_image is set, so these characters could write a file outside Dockerfiles/. (2) base_image is now rejected if it contains newline or NUL characters, which could add extra instructions to the generated Dockerfile's FROM line. All shipped arch/distro names and normal image references still pass, so valid uses work as before. I deliberately left the user-supplied run, setup and install scripts and the eval on dockerRunArgs in run-on-arch.sh alone: running user commands and expanding $VAR references are documented features of the action.
 
