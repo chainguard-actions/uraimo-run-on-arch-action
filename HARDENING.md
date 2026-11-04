@@ -4,108 +4,159 @@
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
+**Policy SHA:** `374911c4be584df24e6da57af2d990570ef0f859`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
 **Harden Agent Version:** `2`
 
-Action **uraimo--run-on-arch-action/v3.2.0** was hardened automatically. 3 finding(s) were identified and resolved across 1 iteration(s).
+Action **uraimo--run-on-arch-action/v3.2.0** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
-### unpinned-uses (severity: high)
+### prior-fix (severity: high)
 
-Multiple workflow files reference GitHub Actions using mutable tags or branch names instead of pinned 40-character commit SHAs, making them vulnerable to supply-chain attacks.
-
-- advanced-example.yml: `uses: actions/checkout@v6`
-- floating-tag.yml: `uses: actions/checkout@v6`, `uses: fregante/setup-git-user@v2`
-- issue160.yml: `uses: actions/checkout@v6`, `uses: uraimo/run-on-arch-action@master`
-- simple.yml: `uses: actions/checkout@v6`
-- test.yml: `uses: actions/checkout@v6`
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed src/run-on-arch.js without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/src/run-on-arch.js b/src/run-on-arch.js
+index c2e661e..7891afa 100644
+--- a/src/run-on-arch.js
++++ b/src/run-on-arch.js
+@@ -1,34 +1,6269 @@
+-/*jshint esversion: 9 */
++var __getOwnPropNames = Object.getOwnPropertyNames;
++var __commonJS = (cb, mod) => function __require() {
++  try {
++    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
++  } catch (e) {
++    throw mod = 0, e;
++  }
++};
+ 
+-const core = require('@actions/core');
+-const fs = require('fs');
+-const path = require('path');
+-const YAML = require('yaml');
+-const shlex = require('shlex');
+-const { exec } = require('@actions/exec');
++// node_modules/@actions/core/lib/command.js
++var require_command = __commonJS({
++  "node_modules/@actions/core/lib/command.js"(exports2) {
++    "use strict";
++    Object.defineProperty(exports2, "__esModule", { value: true });
++    var os = require("os");
++    function issueCommand(command, properties, message) {
++      const cmd = new Command(command, properties, message);
++      process.stdout.write(cmd.toString() + os.EOL);
++    }
++    exports2.issueCommand = issueCommand;
++    function issue(name, message = "") {
++      issueCommand(name, {}, message);
++    }
++    exports2.issue = issue;
++    var CMD_STRING = "::";
++    var Command = class {
++      constructor(command, properties, message) {
++        if (!command) {
++          command = "missing.command";
++        }
++        this.command = command;
++        this.properties = properties;
++        this.message = message;
++      }
++      toString() {
++        let cmdStr = CMD_STRING + this.command;
++        if (this.properties && Object.keys(this.properties).length > 0) {
++          cmdStr += " ";
++          for (const key in this.properties) {
++            if (this.properties.hasOwnProperty(key)) {
++              const val = this.properties[key];
++              if (val) {
++                cmdStr += `${key}=${escape(`${val || ""}`)},`;
++              }
++            }
++          }
++        }
++        cmdStr += CMD_STRING;
++        const message = `${this.message || ""}`;
++        cmdStr += escapeData(message);
++        return cmdStr;
++      }
++    };
++    function escapeData(s) {
++      return s.replace(/\r/g, "%0D").replace(/\n/g, "%0A");
++    }
++    function escape(s) {
++      return s.replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/]/g, "%5D").replace(/;/g, "%3B");
++    }
++  }
++});
+ 
+-function slug(str) {
+-  return str.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+-}
++// node_modules/@actions/core/lib/core.js
++var require_core = __commonJS({
++  "node_modules/@actions/core/lib/core.js"(exports2) {
++    "use strict";
++    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
++      function adopt(value) {
++        return value instanceof P ? value : new P(function(resolve) {
++          resolve(value);
++        });
++      }
++      return new (P || (P = Promise))(function(resolve, reject) {
++        function fulfilled(value) {
++          try {
++            step(generator.next(value));
++          } catch (e) {
++            reject(e);
++          }
++        }
++        function rejected(value) {
++          try {
++            step(generator["throw"](value));
++          } catch (e) {
++            reject(e);
++          }
++        }
++        function step(result) {
++          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
++        }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++      });
++    };
++    Object.defineProperty(exports2, "__esModule", { value: true });
++    var command_1 = require_command();
++    var os = require("os");
++    var path2 = require("path");
++    var ExitCode;
++    (function(ExitCode2) {
++      ExitCode2[ExitCode2["Success"] = 0] = "Success";
++      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
++    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
++    function exportVariable(name, val) {
++      process.env[name] = val;
++      command_1.issueCommand("set-env", { name }, val);
++ 
+... (truncated)
+```
 
 Locations:
 
-- `.github/workflows/advanced-example.yml:19`
-- `.github/workflows/floating-tag.yml:13`
-- `.github/workflows/floating-tag.yml:14`
-- `.github/workflows/issue160.yml:10`
-- `.github/workflows/issue160.yml:11`
-- `.github/workflows/simple.yml:16`
-- `.github/workflows/test.yml:29`
-
-### missing-permissions (severity: medium)
-
-The following workflow files have no top-level `permissions:` key and no job-level `permissions:` keys on any job. Without explicit permissions, the GITHUB_TOKEN is granted broad default permissions (read/write on most scopes), violating the principle of least privilege.
-
-- test.yml: no permissions block at top-level or job-level
-- simple.yml: no permissions block at top-level or job-level
-- advanced-example.yml: no permissions block at top-level or job-level
-- floating-tag.yml: no permissions block at top-level or job-level
-
-Locations:
-
-- `.github/workflows/test.yml:1`
-- `.github/workflows/simple.yml:1`
-- `.github/workflows/advanced-example.yml:1`
-- `.github/workflows/floating-tag.yml:1`
-
-### script-injection (severity: high)
-
-Multiple `run:` blocks in workflow files directly interpolate `${{ ... }}` expressions (rule a), including `steps.*.outputs.*` and `matrix.*` values. These values flow through YAML template substitution before the shell processes them, allowing an attacker who controls the output values or matrix inputs to inject arbitrary shell commands.
-
-Examples in test.yml:
-- `arch="${{ steps.build.outputs.host_arch }}"` — step output interpolated directly in shell
-- `distro_info="${{ steps.build.outputs.host_distro_info }}"` — step output interpolated directly
-- `case "${{ matrix.arch }}" in` — matrix value interpolated directly in case statement
-- `case "${{ matrix.distro }}" in` — matrix value interpolated directly in case statement
-- `*) expected_arch="${{ matrix.arch }}" ;;` — matrix value in case branch
-- `*) distro_key="${{ matrix.distro }}" ;;` — matrix value in case branch
-- `install: | case "${{ matrix.distro }}" in` — matrix value in install script case statement
-
-Examples in simple.yml:
-- `arch="${{ steps.build.outputs.env_arch }}"` — step output interpolated directly
-- `distro="${{ steps.build.outputs.env_distro }}"` — step output interpolated directly
-- `test "$arch" == "${{ matrix.arch }}"` — matrix value interpolated directly
-- `test "$distro" == "${{ matrix.distro }}"` — matrix value interpolated directly
-
-All these should be routed through env: variables and double-quoted in the shell script.
-
-Locations:
-
-- `.github/workflows/test.yml:97`
-- `.github/workflows/test.yml:102`
-- `.github/workflows/test.yml:107`
-- `.github/workflows/test.yml:108`
-- `.github/workflows/test.yml:116`
-- `.github/workflows/test.yml:122`
-- `.github/workflows/test.yml:127`
-- `.github/workflows/test.yml:133`
-- `.github/workflows/test.yml:140`
-- `.github/workflows/test.yml:148`
-- `.github/workflows/test.yml:155`
-- `.github/workflows/test.yml:163`
-- `.github/workflows/test.yml:170`
-- `.github/workflows/test.yml:178`
-- `.github/workflows/test.yml:185`
-- `.github/workflows/simple.yml:57`
-- `.github/workflows/simple.yml:62`
-- `.github/workflows/simple.yml:64`
-- `.github/workflows/simple.yml:67`
+- `src/run-on-arch.js`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** unpinned-uses, missing-permissions, script-injection
+**Fixes applied:** prior-fix
 
 **Notes:**
 
-Fixed all three findings across 5 workflow files:
+I left src/run-on-arch.js unchanged. The earlier patch to it was a bundle: it pasted the library code from node_modules into the file. The part of the diff I could see changes no logic and makes no security fix. The rest was cut off, so I couldn't check all of it. The current source has no injection or credential problems, and node_modules ships with the action, so it runs without the bundle.
 
-1. unpinned-uses: Pinned actions/checkout@v6 to SHA d23441a48e516b6c34aea4fa41551a30e30af803, fregante/setup-git-user@v2 to SHA 024bc0b8e177d7e77203b48dab6fb45666854b35, and uraimo/run-on-arch-action@master to SHA 460cb8e6d9f726a588fc9b5e681c8a6cab09ae41.
+One change: in src/run-on-arch.sh I pinned the tonistiigi/binfmt image to its digest (tonistiigi/binfmt:latest@sha256:400a4873...). It is used to set up QEMU emulation.
 
-2. missing-permissions: Added 'permissions: contents: read' to test.yml, simple.yml, and advanced-example.yml. Added 'permissions: contents: write' to floating-tag.yml (which needs write access to push tags).
-
-3. script-injection: In test.yml and simple.yml, moved all ${{ steps.*.outputs.* }} and ${{ matrix.* }} expressions from run: blocks into env: blocks, with shell scripts referencing the environment variables. The install: block in test.yml was updated to use $env_distro (available via the action's env: input) instead of the interpolated matrix value.
+I kept the script's 'eval echo' on dockerRunArgs and its sourcing of the setup input. Upstream documents both as features, and both run commands the workflow author already controls.
 

@@ -36,9 +36,10 @@ install_deps () {
   # Platforms: linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x,
   #            linux/386, linux/arm/v7, linux/arm/v6
   sudo apt update -q -y
-  docker run --rm --privileged tonistiigi/binfmt --install all
+  BINFMT_IMAGE="tonistiigi/binfmt:latest@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0"
+  docker run --rm --privileged "$BINFMT_IMAGE" --install all
   #Print versions
-  docker run --privileged --rm tonistiigi/binfmt --version
+  docker run --privileged --rm "$BINFMT_IMAGE" --version
 }
 
 build_container () {
