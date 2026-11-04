@@ -6255,6 +6255,16 @@ async function main() {
   const arch = core.getInput("arch", { required: true });
   const distro = core.getInput("distro", { required: true });
   const base_image = core.getInput("base_image", { required: false });
+  const safeName = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+  if (!safeName.test(arch) || arch.includes("..")) {
+    throw new Error(`run-on-arch: invalid arch value.`);
+  }
+  if (!safeName.test(distro) || distro.includes("..")) {
+    throw new Error(`run-on-arch: invalid distro value.`);
+  }
+  if (/[\r\n]/.test(base_image)) {
+    throw new Error(`run-on-arch: base_image must be a single line.`);
+  }
   if ((arch === "none" || distro === "none") && !base_image) {
     throw new Error(`run-on-arch: If arch and distro are not specified, base_image is required.`);
   }
@@ -6329,6 +6339,9 @@ async function main() {
     Object.entries(mapping).forEach(([key, value]) => {
       if (typeof value === "object") {
         throw new Error(`run-on-arch: env ${key} value must be flat.`);
+      }
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+        throw new Error(`run-on-arch: env key ${JSON.stringify(key)} is not a valid variable name.`);
       }
       env[key] = value;
       dockerRunArgs.push(`-e${key}`);
